@@ -1408,6 +1408,89 @@ The one-liner must be SUBSTANTIVE:
 - If this is the last plan: "Phase complete, ready for transition"
   </step>
 
+<step name="process_linked_todos">
+**Process linked todos from PLAN.md frontmatter.**
+
+Check if PLAN.md has `addresses_todos` in frontmatter:
+
+```bash
+# Extract addresses_todos from PLAN.md frontmatter
+grep -A 20 "^---" .planning/phases/XX-name/{phase}-{plan}-PLAN.md | grep -A 5 "addresses_todos:"
+```
+
+**If addresses_todos exists and is not empty:**
+
+For each todo path in the list:
+1. Verify the todo file exists in `pending/`
+2. Move to `completed/` directory:
+   ```bash
+   mkdir -p .planning/todos/completed
+   mv .planning/todos/pending/{todo-file}.md .planning/todos/completed/
+   ```
+3. Add completion note to the moved todo file:
+   ```bash
+   echo "" >> .planning/todos/completed/{todo-file}.md
+   echo "---" >> .planning/todos/completed/{todo-file}.md
+   echo "**Completed:** $(date +%Y-%m-%d)" >> .planning/todos/completed/{todo-file}.md
+   echo "**Completed by:** Phase {phase}, Plan {plan}" >> .planning/todos/completed/{todo-file}.md
+   echo "**Summary:** .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md" >> .planning/todos/completed/{todo-file}.md
+   ```
+
+4. Stage the moved file:
+   ```bash
+   git add .planning/todos/pending/{todo-file}.md  # Will record deletion
+   git add .planning/todos/completed/{todo-file}.md
+   ```
+
+5. Report:
+   ```
+   Todo completed: {todo-file}.md
+     Moved to: .planning/todos/completed/
+     Linked to: {phase}-{plan}-SUMMARY.md
+   ```
+
+**If addresses_todos is empty or missing:** Skip silently.
+
+**Error handling:** If todo file not found in pending/, log warning and continue (may have been moved manually).
+</step>
+
+<step name="process_linked_audits">
+**Remind about linked audits from PLAN.md frontmatter.**
+
+Check if PLAN.md has `addresses_audits` in frontmatter:
+
+```bash
+# Extract addresses_audits from PLAN.md frontmatter
+grep -A 20 "^---" .planning/phases/XX-name/{phase}-{plan}-PLAN.md | grep -A 5 "addresses_audits:"
+```
+
+**If addresses_audits exists and is not empty:**
+
+Audits require human judgment to update (unlike todos which are binary complete/not-complete). Display a reminder:
+
+```
+================================================================================
+AUDIT UPDATE REMINDER
+================================================================================
+
+This plan addressed findings from:
+{list each audit path}
+
+Consider updating:
+- Mark resolved items as COMPLETE
+- Update recommendation status
+- Add notes about implementation approach
+
+Files to review:
+{list each audit path with full file path}
+
+(This is a reminder only - audit updates require human review)
+================================================================================
+```
+
+**If addresses_audits is empty or missing:** Skip silently.
+</step>
+
 <step name="update_current_position">
 Update Current Position section in STATE.md to reflect plan completion.
 

@@ -21,6 +21,8 @@ depends_on: []              # Plan IDs this plan requires (e.g., ["01-01"]).
 files_modified: []          # Files this plan modifies.
 autonomous: true            # false if plan has checkpoints requiring user interaction
 user_setup: []              # Human-required setup Claude cannot automate (see below)
+addresses_todos: []         # Optional: Todo files explicitly referenced in ROADMAP phase description
+addresses_audits: []        # Optional: Audit files explicitly referenced in ROADMAP phase description
 
 # Goal-backward verification (derived during planning, verified after execution)
 must_haves:
